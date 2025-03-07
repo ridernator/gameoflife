@@ -191,8 +191,6 @@ int main(const int    argc,
   std::thread thread([&gd, &shouldStop] {
     while (!shouldStop) {
       gd.update();
-
-      // usleep(100);
     }
   });
 
