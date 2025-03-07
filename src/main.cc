@@ -8,6 +8,7 @@
 #include <mutex>
 #include <sys/types.h>
 #include <thread>
+#include <set>
 
 #include "EventHandler.h"
 #include "GameData.h"
@@ -34,9 +35,11 @@ class EV : public EventHandler {
 class GD : public GameData {
  public:
   GD(const std::uint32_t x,
-     const std::uint32_t y) : x(x),
-                              y(y),
-                              vertexArray(sf::VertexArray(sf::PrimitiveType::Triangles, 6 * x * y)) {
+     const std::uint32_t y,
+     const std::string& births,
+     const std::string& survives) : x(x),
+                                    y(y),
+                                    vertexArray(sf::VertexArray(sf::PrimitiveType::Triangles, 6 * x * y)) {
     data = new bool*[x];
     next = new bool*[x];
 
@@ -49,6 +52,14 @@ class GD : public GameData {
       for (std::uint32_t row = 0; row < y; ++row) {
         data[col][row] = (rand() > (RAND_MAX / 2));
       }
+    }
+
+    for (const auto& b : births) {
+      this->births.insert(b - 48);
+    }
+
+    for (const auto& s : survives) {
+      this->survives.insert(s - 48);
     }
   }
 
@@ -135,13 +146,13 @@ class GD : public GameData {
         numNeighbours = getNumNeighbours(col, row);
 
         if (data[col][row]) {
-          if ((numNeighbours < 2) || (numNeighbours > 3)) {
-            next[col][row] = false;
-          } else {
+          if (survives.find(numNeighbours) != survives.end()) {
             next[col][row] = true;
+          } else {
+            next[col][row] = false;
           }
         } else {
-          if (numNeighbours == 3) {
+          if (births.find(numNeighbours) != births.end()) {
             next[col][row] = true;
           } else {
             next[col][row] = false;
@@ -170,17 +181,20 @@ class GD : public GameData {
   std::mutex lock;
 
   sf::VertexArray vertexArray;
+
+  std::set<std::uint32_t> births;
+  std::set<std::uint32_t> survives;
 };
 
 int main(const int    argc,
          const char** argv) {
-  if (argc != 3) {
-    std::cerr << "Usage: gameOfLife x y" << std::endl;
+  if (argc != 5) {
+    std::cerr << "Usage: gameOfLife x y births survives (use B=3, S=23 for Life)" << std::endl;
 
     std::exit(EXIT_FAILURE);
   }
 
-  GD gd(std::strtod(*(argv + 1), nullptr), std::strtod(*(argv + 2), nullptr));
+  GD gd(std::strtod(*(argv + 1), nullptr), std::strtod(*(argv + 2), nullptr), *(argv + 3), *(argv + 4));
 
   GameOfLife gameOfLife(gd);
 
