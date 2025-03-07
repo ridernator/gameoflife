@@ -8,9 +8,7 @@
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/VideoMode.hpp>
 
-GameOfLife::GameOfLife(const std::string& title,
-                       GameData&          gameData) : title(title),
-                                                      gameData(gameData) {
+GameOfLife::GameOfLife(GameData& gameData) : gameData(gameData) {
 }
 
 GameOfLife::~GameOfLife() {
@@ -20,11 +18,9 @@ GameOfLife::~GameOfLife() {
 }
 
 void GameOfLife::run() {
-  window = new sf::RenderWindow(sf::VideoMode::getFullscreenModes()[0], title, sf::State::Fullscreen);
+  window = new sf::RenderWindow(sf::VideoMode::getFullscreenModes()[0], "GameOfLife", sf::State::Fullscreen);
 
-  // sf::View view = window->getDefaultView();
-  // view.setRotation(180);
-  // window->setView(view);
+  window->setFramerateLimit(60);
 
   std::optional<sf::Event> event;
 
@@ -49,7 +45,7 @@ void GameOfLife::stop() {
   shouldStop = true;
 }
 
-void GameOfLife::draw(const GameData& data) {
+void GameOfLife::draw(GameData& data) {
   data.draw(*window);
 }
 
